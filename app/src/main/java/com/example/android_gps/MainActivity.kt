@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Geocoder
+import android.location.Location
 import android.location.LocationManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -16,6 +18,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.android_gps.databinding.ActivityMainBinding
 import com.google.android.gms.location.*
+import kotlin.math.sin
 
 class MainActivity : AppCompatActivity() {
 
@@ -36,6 +39,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fusedLocation: FusedLocationProviderClient
     private val PERMISSION_ID = 42
     private var isGPSEnabled = false
+    private var latitude: Double = 0.0
+    private var longitude: Double = 0.0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,7 +51,7 @@ class MainActivity : AppCompatActivity() {
             enableGPSService()
         }
         binding.fabCoordinates.setOnClickListener{
-
+            manageLocation()
         }
     }
 
@@ -104,6 +109,7 @@ class MainActivity : AppCompatActivity() {
         ActivityCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
     }
 
+    // Formato tradicional del de arriba
     private fun checkPermission(): Boolean {
         return ActivityCompat.
         checkSelfPermission(this,android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
@@ -129,31 +135,68 @@ class MainActivity : AppCompatActivity() {
                 fusedLocation.lastLocation.addOnSuccessListener {
                     location -> getCoordinates()
                 }
-            }
+            } else
+                requestPermissionUser()
         }else
             goToEnableGPS()
     }
 
     @SuppressLint("MissingPermission")
     private fun getCoordinates() {
-        val locationRequest = LocationRequest.create().apply {
+        // Para la version de Google gms location 21 y superiores
+        var locationRequest = LocationRequest.Builder(
+            Priority.PRIORITY_HIGH_ACCURACY,1000
+        ).setMaxUpdates(1).build()
+
+        /*val locationRequest = LocationRequest.create().apply {
+
+            // Para versiones de Google gms location 20 e inferiores
             priority = Priority.PRIORITY_HIGH_ACCURACY
             interval = 0
             fastestInterval = 0
             numUpdates = 1
-        }
+        }*/
         fusedLocation.requestLocationUpdates(locationRequest,myLocationCallback,Looper.myLooper())
     }
 
     private val myLocationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
-            super.onLocationResult(locationResult)
-            if (locationResult != null){
-                var myLastLocation = locationResult.lastLocation
-                binding.txtLatitude.text = myLastLocation.latitude.toString()
-                binding.txtLength.text = myLastLocation.longitude.toString()
+            var myLastLocation: Location? = locationResult.lastLocation
+            if (myLastLocation != null){
+                latitude = myLastLocation.latitude
+                longitude = myLastLocation.longitude
+                binding.apply {
+                    txtLatitude.text = latitude.toString()
+                    txtLength.text = longitude.toString()
+                }
+                getAddressInfo()
 
             }
         }
+    }
+
+    private fun getAddressInfo() {
+        // La clase para obtener direcciones a partir
+        // de coordenadas se llama Geocoder
+        // Pueden obtener de 1 a n direcciones
+        // Siempre en formatode Array
+        val geocoder = Geocoder(this)
+        try {
+            //TODO en la version KT 1.9 esta deprecado
+            var addresses = geocoder.getFromLocation(latitude,longitude,1)
+            binding.txtDirection.text = addresses.get(0).getAddressLine(0)
+        }catch (e: Exception){
+            binding.txtDirection.text = "No se pudo obtener la direccion"
+        }
+
+    }
+    private fun calculateDistance(lastLatitude: Double, lastLongitude: Double):Double {
+        val earthRadious = 6371.0 // Kilometros
+        val diffLatitude = Math.toRadians(lastLatitude - latitude)
+        val diffLongitude = Math.toRadians(lastLongitude - longitude)
+        val sinLatitude = sin(diffLatitude / 2)
+        val sinLongitude = sin(diffLongitude / 2)
+        val distance = 0.0
+        return distance
     }
 }

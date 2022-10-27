@@ -8,5 +8,6 @@
     <string name="dialog_button_accept">Habilitar</string>
     <string name="dialog_button_deny">Denegar</string>
     <string name="btn_coordinates">Este boton obtiene coordenadas en APP</string>
+    <string name="txt_hobby">El hobby</string>
 
 </resources>
