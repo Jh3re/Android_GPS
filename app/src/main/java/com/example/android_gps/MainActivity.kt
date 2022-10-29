@@ -50,6 +50,8 @@ class MainActivity : AppCompatActivity() {
     private var velocity = 0.0
     private var c = 0
 
+    private var accumulatedDistance = 0.0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -154,7 +156,7 @@ class MainActivity : AppCompatActivity() {
         // Para la version de Google gms location 21 y superiores
         var locationRequest = LocationRequest.Builder(
             Priority.PRIORITY_HIGH_ACCURACY,INTERVAL_TIME
-        ).setMaxUpdates(100).build() // Tarea 200 300
+        ).setMaxUpdates(300).build() // Tarea 200 300
 
         /*val locationRequest = LocationRequest.create().apply {
 
@@ -188,6 +190,9 @@ class MainActivity : AppCompatActivity() {
                 latitude = lastLatitude//myLastLocation.latitude
                 longitude = lastLongitude//myLastLocation.longitude
                 c++
+
+                accumulatedDistance = accumulatedDistance + distance
+                binding.txtaccumulatedDistance.text = "Caminaste $accumulatedDistance mts."
                 getAddressInfo()
 
             }
