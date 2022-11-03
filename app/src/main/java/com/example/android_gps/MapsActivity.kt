@@ -3,6 +3,13 @@ package com.example.android_gps
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
+import com.example.android_gps.Coordenates.casaJhere
+import com.example.android_gps.Coordenates.puno
+import com.example.android_gps.Coordenates.salchiSalvaje
+import com.example.android_gps.Coordenates.stadium
+import com.example.android_gps.Coordenates.univalle
+import com.example.android_gps.Coordenates.valleLuna
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -11,6 +18,9 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.example.android_gps.databinding.ActivityMapsBinding
+import com.google.android.gms.maps.model.CameraPosition
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -60,7 +70,45 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap.addMarker(MarkerOptions().position(bgtColombia).title("Lugar feliz").snippet("${bgtColombia.latitude},${bgtColombia.longitude}"))
 
         // Posicionar la camara en la ubicacion de preferencia
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(bgtColombia,20f))
+        // mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(bgtColombia,20f))
+
+        /**
+         * Configuracion de su camara personalizada
+         */
+        val customCamera = CameraPosition.Builder()
+            .target(univalle) // donde apunta la camara
+            .zoom(17f) // 15 y 18 calles 20 edificios
+            .tilt(90f) // angulo de inclinacion de la camara, no deberia ser agresivos
+            .bearing(195f) // cambio de orientacion de 0 a 360
+            .build()
+        // mMap.moveCamera(CameraUpdateFactory.newCameraPosition(customCamera))
+
+        /**
+         * Movimiento de la camara (animacion de la camara)
+         * Plus--- uso standar de corrutinas
+         */
+
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(univalle, 17f))
+        // Corrutinas para apreciar mejor el movimiento
+        lifecycleScope.launch {
+            delay(5000)
+            // Para mover la camara entre puntos puntos en el mapa se recomienda una animacion
+            // se usa animateCamera
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(casaJhere,17f))
+            mMap.addMarker(MarkerOptions().position(casaJhere).title("Mi casa").snippet("${casaJhere.latitude},${casaJhere.longitude}"))
+            delay(10000)
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(stadium,17f))
+            mMap.addMarker(MarkerOptions().position(stadium).title("Stadium").snippet("${stadium.latitude},${stadium.longitude}"))
+            delay(5000)
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(valleLuna,17f))
+            mMap.addMarker(MarkerOptions().position(valleLuna).title("Valle de la luna").snippet("${valleLuna.latitude},${valleLuna.longitude}"))
+            delay(5000)
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(salchiSalvaje,17f))
+            mMap.addMarker(MarkerOptions().position(salchiSalvaje).title("Salchichas").snippet("${salchiSalvaje.latitude},${salchiSalvaje.longitude}"))
+            delay(10000)
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(puno,17f))
+            mMap.addMarker(MarkerOptions().position(puno).title("Meta... PUNO-PERU").snippet("${puno.latitude},${puno.longitude}"))
+        }
 
         mMap.setOnMapClickListener {
 
