@@ -1,10 +1,14 @@
 package com.example.android_gps
 
+import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.example.android_gps.Coordenates.casaJhere
+import com.example.android_gps.Coordenates.cementerioJudios
+import com.example.android_gps.Coordenates.lapaz
+import com.example.android_gps.Coordenates.plazaAbaroa
 import com.example.android_gps.Coordenates.puno
 import com.example.android_gps.Coordenates.salchiSalvaje
 import com.example.android_gps.Coordenates.stadium
@@ -15,10 +19,8 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
 import com.example.android_gps.databinding.ActivityMapsBinding
-import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -34,6 +36,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        Utils.binding = binding
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
@@ -54,6 +57,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
      */
     // Respuesta cuando el mapa esta listo para trabajar el parametro que tienen devuelve el mapa de
     // Google listo y configurado
+    @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
@@ -88,9 +92,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
          * Plus--- uso standar de corrutinas
          */
 
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(univalle, 17f))
+        // mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(univalle, 17f))
         // Corrutinas para apreciar mejor el movimiento
-        lifecycleScope.launch {
+        /*lifecycleScope.launch {
             delay(5000)
             // Para mover la camara entre puntos puntos en el mapa se recomienda una animacion
             // se usa animateCamera
@@ -108,7 +112,38 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             delay(10000)
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(puno,17f))
             mMap.addMarker(MarkerOptions().position(puno).title("Meta... PUNO-PERU").snippet("${puno.latitude},${puno.longitude}"))
+        }*/
+
+        /**
+         * Movimiento de cámara por pixeles puede ser horizontal, vertical o combinado
+         */
+        /*lifecycleScope.launch {
+            delay(5_000)
+            for (i in 0..100){
+                mMap.animateCamera(CameraUpdateFactory.scrollBy(0f,140f))
+                delay(500)
+            }
+        }*/
+
+        /**
+         * Bounds para delimitar areas de accion en el mapa, armar sesgos
+         */
+        val univalleBounds = LatLngBounds(plazaAbaroa, cementerioJudios)
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(lapaz,15f))
+        lifecycleScope.launch {
+            delay(3_500)
+            mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(univalleBounds,Utils.dp(32)))
+            // Punto central del cuadrante definido
+            delay(2000)
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(univalleBounds.center,18f))
+
         }
+        // Como delimitar al area
+        mMap.setLatLngBoundsForCameraTarget(univalleBounds)
+
+        // Activar la posicion actual en el mapa
+        // Evaluar permisos de GPS
+        mMap.isMyLocationEnabled = true
 
         mMap.setOnMapClickListener {
 
@@ -119,16 +154,24 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             }
             c++
 
-            /*
-            * Configuracion de controles de Ui y Gestures del mapa
-            * */
-            mMap.uiSettings.apply {
-                isZoomControlsEnabled=true // Controles de zoom
-                isCompassEnabled=true// Habilita el compas de la orientacion
-                isMapToolbarEnabled=true// Botones complementarios del mapa
-
-            }
         }
+        /**
+         * Configuracion de controles de Ui y Gestures del mapa
+         */
+        mMap.uiSettings.apply {
+            isMyLocationButtonEnabled = true
+            isZoomControlsEnabled=true // Controles de zoom
+            isCompassEnabled=true// Habilita el compas de la orientacion
+            isMapToolbarEnabled=true// Botones complementarios del mapa
+            isRotateGesturesEnabled = false // Ya no pueden rotar  el mapa
+            isTiltGesturesEnabled = false // Ya no pueden inclinar la camara
+            isZoomGesturesEnabled = true // habilitar o deshabilitar gesture de zoom
+        }
+
+        /**
+         * Configuracion, personalizacion, estilos de mapa
+         */
+        mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this,R.raw.map_style))
 
     }
 
