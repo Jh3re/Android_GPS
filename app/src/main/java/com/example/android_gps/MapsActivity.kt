@@ -24,7 +24,7 @@ import com.google.android.gms.maps.model.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
+class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
@@ -44,6 +44,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         // El mapa se carga asincronamente
         // No satura tu proceso principal o de la UI
         mapFragment.getMapAsync(this)
+        // Activar evento listener de conjunto de botones
+        setupToggleButttons()
     }
 
     /**
@@ -173,6 +175,52 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
          */
         mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this,R.raw.map_style))
 
+        /**
+         * Configuracion y personalizacion de marcadores
+         * Estilos, formas y eventos
+         */
+        val univalleMarker = mMap.addMarker(MarkerOptions().title("La U").position(univalle))
+        univalleMarker?.run {
+            // Tonos definidos por android
+            // setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+            // color hue
+            // setIcon(BitmapDescriptorFactory.defaultMarker(74f))
+            // Marcador personalizado desde imagenes de vectores
+            Utils.getBitmapFromVector(this@MapsActivity, R.drawable.ic_baseline_fireplace_24)?.let {
+                setIcon(BitmapDescriptorFactory.fromBitmap(it))
+            }
+            //setIcon(BitmapDescriptorFactory.fromResource(R.drawable.restaurant))
+            rotation = 145f
+            setAnchor(0.5f,0.5f)
+            isFlat = true
+            isDraggable = true
+            snippet = "Texto alternativo"
+        }
+
+        // Eventos en markers
+        mMap.setOnMarkerClickListener(this)
+
+    }
+
+    private fun setupToggleButttons(){
+        binding.toggleGroup.addOnButtonCheckedListener {
+                group, checkedId, isChecked ->
+            if (isChecked){
+                mMap.mapType = when(checkedId) {
+                    R.id.btnNormal -> GoogleMap.MAP_TYPE_NORMAL
+                    R.id.btnHybrid -> GoogleMap.MAP_TYPE_HYBRID
+                    R.id.btnSatellite -> GoogleMap.MAP_TYPE_SATELLITE
+                    R.id.btnTerrain -> GoogleMap.MAP_TYPE_TERRAIN
+                    else -> {GoogleMap.MAP_TYPE_NONE}
+                }
+            }
+        }
+    }
+
+    override fun onMarkerClick(marker: Marker): Boolean {
+        // marker: es el marcador al que se hace click
+        Toast.makeText(this,"${marker.position.latitude}, ${marker.position.longitude}",Toast.LENGTH_SHORT).show()
+        return false
     }
 
 }

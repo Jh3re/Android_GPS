@@ -12,5 +12,9 @@
     <string name="title_activity_maps">MapsActivity</string>
     <string name="btn_location">Localizacion</string>
     <string name="btn_normal">Normal</string>
+    <string name="btn_hybrid">Hibrido</string>
+    <string name="btn_satellite">Satelital</string>
+    <string name="btn_terrain">Terreno</string>
+    <string name="btn_none">Ninguno</string>
 
 </resources>

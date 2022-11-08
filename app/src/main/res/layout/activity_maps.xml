@@ -19,10 +19,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@color/yellow_transparent"
+        map:singleSelection="true"
+        map:checkedButton="@id/btnNormal"
         map:layout_constraintStart_toStartOf="parent"
         map:layout_constraintEnd_toEndOf="parent"
         map:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginBottom="32dp">
+        android:layout_marginBottom="112dp">
 
         <Button
             android:id="@+id/btnNormal"
@@ -30,6 +32,46 @@
             android:layout_height="wrap_content"
             android:minWidth="0dp"
             android:text="@string/btn_normal"
+            android:textColor="@color/white"
+            android:textAppearance="?attr/textAppearanceCaption"
+            style="?attr/materialButtonOutlinedStyle"/>
+
+        <Button
+            android:id="@+id/btnHybrid"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="0dp"
+            android:text="@string/btn_hybrid"
+            android:textColor="@color/white"
+            android:textAppearance="?attr/textAppearanceCaption"
+            style="?attr/materialButtonOutlinedStyle"/>
+
+        <Button
+            android:id="@+id/btnSatellite"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="0dp"
+            android:text="@string/btn_satellite"
+            android:textColor="@color/white"
+            android:textAppearance="?attr/textAppearanceCaption"
+            style="?attr/materialButtonOutlinedStyle"/>
+
+        <Button
+            android:id="@+id/btnTerrain"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="0dp"
+            android:text="@string/btn_terrain"
+            android:textColor="@color/white"
+            android:textAppearance="?attr/textAppearanceCaption"
+            style="?attr/materialButtonOutlinedStyle"/>
+
+        <Button
+            android:id="@+id/btnNone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="0dp"
+            android:text="@string/btn_none"
             android:textColor="@color/white"
             android:textAppearance="?attr/textAppearanceCaption"
             style="?attr/materialButtonOutlinedStyle"/>
@@ -42,7 +84,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="35dp"
-        android:layout_marginBottom="48dp"
+        android:layout_marginBottom="200dp"
         android:clickable="true"
         android:contentDescription="@string/btn_location"
         app:layout_constraintBottom_toBottomOf="parent"
