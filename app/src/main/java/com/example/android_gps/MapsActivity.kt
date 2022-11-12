@@ -1,8 +1,12 @@
 package com.example.android_gps
 
 import android.annotation.SuppressLint
+import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.view.View
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.example.android_gps.Coordenates.casaJhere
@@ -24,10 +28,14 @@ import com.google.android.gms.maps.model.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
+class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener,
+    GoogleMap.OnMarkerDragListener {
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
+
+    private lateinit var polyline: Polyline;
+    private lateinit var handler : Handler;
 
     private var c = 0
 
@@ -63,6 +71,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
+        var ptlist = ArrayList<LatLng>()
+
         // Usted puede delimitar el rango de Zoom de la camarar para evitar que el usuario haga un
         // zoom in o out de la camara
         mMap.apply {
@@ -96,22 +106,47 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         // mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(univalle, 17f))
         // Corrutinas para apreciar mejor el movimiento
-        /*lifecycleScope.launch {
+        handler = Handler(Looper.getMainLooper());
+
+        polyline = mMap.addPolyline(PolylineOptions().addAll(ptlist));
+
+        var runnableCode = object: Runnable {
+            override fun run() {
+                var w = polyline.width;
+                w = w + 0.5f;
+                if (w > 25.0) {
+                    w = 1.0f;
+                }
+                polyline.setWidth(w);
+                handler.postDelayed(this, 50);
+            }
+        }
+        /**
+        lifecycleScope.launch {
             delay(5000)
             // Para mover la camara entre puntos puntos en el mapa se recomienda una animacion
             // se usa animateCamera
+            ptlist.add(LatLng(casaJhere.latitude,casaJhere.longitude));
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(casaJhere,17f))
             mMap.addMarker(MarkerOptions().position(casaJhere).title("Mi casa").snippet("${casaJhere.latitude},${casaJhere.longitude}"))
-            delay(10000)
+            handler.postDelayed(runnableCode, 50);
+
+            ptlist.add(LatLng(stadium.latitude, stadium.longitude));
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(stadium,17f))
             mMap.addMarker(MarkerOptions().position(stadium).title("Stadium").snippet("${stadium.latitude},${stadium.longitude}"))
-            delay(5000)
+            handler.postDelayed(runnableCode, 50);
+
+            ptlist.add(LatLng(valleLuna.latitude, valleLuna.longitude));
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(valleLuna,17f))
             mMap.addMarker(MarkerOptions().position(valleLuna).title("Valle de la luna").snippet("${valleLuna.latitude},${valleLuna.longitude}"))
-            delay(5000)
+            handler.postDelayed(runnableCode, 50);
+
+            ptlist.add(LatLng(salchiSalvaje.latitude, salchiSalvaje.longitude));
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(salchiSalvaje,17f))
             mMap.addMarker(MarkerOptions().position(salchiSalvaje).title("Salchichas").snippet("${salchiSalvaje.latitude},${salchiSalvaje.longitude}"))
-            delay(10000)
+            handler.postDelayed(runnableCode, 50);
+
+            ptlist.add(LatLng(puno.latitude,puno.longitude));
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(puno,17f))
             mMap.addMarker(MarkerOptions().position(puno).title("Meta... PUNO-PERU").snippet("${puno.latitude},${puno.longitude}"))
         }*/
@@ -199,6 +234,53 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         // Eventos en markers
         mMap.setOnMarkerClickListener(this)
+        mMap.setOnMarkerDragListener(this)
+
+        /**
+         * Trazado de rutas
+         * partiendo de dibujar lineas en el mapa
+         * entre puntos de coordenadas
+         * (Polyline)
+         */
+        setupPolyline()
+
+    }
+
+    // Dibujar una linea en el mapa
+    private fun setupPolyline() {
+        // Tener una ruta en formato de array o lista
+        val miRuta = mutableListOf(univalle,stadium, cementerioJudios)
+        // se configura y crea la linea
+        val polyline = mMap.addPolyline(PolylineOptions()
+            .color(Color.WHITE) // color de la linea
+            .width(12f) // Ancho de la linea
+            .clickable(true) // Permite que a la linea le puedes hacer click
+            .geodesic(true) // Define la linea respetando la curvatura de la tierra
+
+
+        )
+        // Tienes que indicar los puntos sobre los que se vam a dibujar
+        // polyline.points = miRuta
+        lifecycleScope.launch {
+            val miRutaPersonalizada = mutableListOf<LatLng>(univalle,stadium, cementerioJudios)
+            for (punto in miRuta){
+                miRutaPersonalizada.add(punto)
+                polyline.points = miRutaPersonalizada
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(punto,15f))
+                delay(3_500)
+            }
+            // Configurar la interseccion o union de lineas
+            // polyline.width = 10f
+            // polyline.jointType = JointType.ROUND
+            // polyline.jointType = JointType.BEVEL
+
+            // Personalizar el patron de la linea
+            // 1) Linea continua por defecto
+            // 2) Que la linea sea dibujada por puntos separados por un espacio
+            // 3) Segmentos de linea separados por espacio o guiones
+            polyline.pattern = listOf(Dot(), Gap(32f), Dash(16f), Gap(32f))
+        }
+
 
     }
 
@@ -221,6 +303,29 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         // marker: es el marcador al que se hace click
         Toast.makeText(this,"${marker.position.latitude}, ${marker.position.longitude}",Toast.LENGTH_SHORT).show()
         return false
+    }
+
+    // Cuando el marcador esta siendo arrastrado por el mapa
+    override fun onMarkerDrag(marker: Marker) {
+        // marker: el marcador que estas arrastrando
+        binding.toggleGroup.visibility = View.INVISIBLE
+        marker.alpha = 0.4f
+
+    }
+
+    // Cuando se suelta el marcador luego de haberlo arrastrado
+    override fun onMarkerDragEnd(marker: Marker) {
+        binding.toggleGroup.visibility = View.VISIBLE
+        marker.alpha = 1.0f
+        // Sirve para desplegar la ventana de informacion
+        // llamada infoWindow
+        marker.showInfoWindow()
+    }
+
+    // Cuando esta empezando a ser arrastrado el marcador
+    override fun onMarkerDragStart(marker: Marker) {
+        // Ocultar la ventana de informacion
+        marker.hideInfoWindow()
     }
 
 }
